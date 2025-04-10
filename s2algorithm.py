@@ -1,9 +1,7 @@
 """
 Note:
-        s2query is direct implementation by @jifanz
+        Original and adapted implementation from @jifanz
         https://github.com/jifanz/GALAXY
-
-        s2query_weighted() and RunS2() are adapted from that implementation
 """
 
 

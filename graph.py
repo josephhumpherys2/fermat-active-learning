@@ -1,3 +1,11 @@
+"""
+Note:
+        Original and adapted implementation from @jifanz
+        https://github.com/jifanz/GALAXY
+
+"""
+
+
 import numpy as np
 from queue import PriorityQueue, Queue
 
