@@ -42,7 +42,6 @@ class Graph:
 
     def label(self, idx):
         node = self.node_dict[idx]
-        #print("graph.py node", node)
         node.queried = True
         self.queried.append(node)
         self.not_queried.remove(node)
@@ -156,98 +155,3 @@ class Graph:
                 
         return float('inf'), None
 
-
-class MultiLinearGraph():
-    def __init__(self, graphs, n_order):
-        self.graphs = graphs
-        self.n_order = n_order
-        self.nodes = graphs[0].nodes
-        self.node_list = graphs[0].node_list
-        self.num_nodes = len(graphs[0].nodes)
-        self.node_dict = graphs[0].node_dict
-        self.not_queried = graphs[0].not_queried
-        self.s2_iteration = 0
-
-    def label(self, idx):
-        for graph in self.graphs:
-            graph.label(idx)
-
-    def shortest_shortest_path(self, increment=True):
-        min_dist = float('inf')
-        min_path = None
-        # for graph in self.graphs:
-        #     dist, path = graph.shortest_shortest_path()
-        #     if dist < min_dist:
-        #         min_dist = dist
-        #         min_path = path
-        graph = self.graphs[self.s2_iteration % len(self.graphs)]
-        dist, path = graph.shortest_shortest_path()
-        if dist < min_dist:
-            min_dist = dist
-            min_path = path
-        if min_path is None and increment and self.n_order < len(self.node_list):
-            self.n_order += 1
-            order = self.n_order
-            for graph in self.graphs:
-                for i in range(order):
-                    self.check_add_neighbor(graph.node_list[i], graph.node_list[i + order], graph)
-                    self.check_add_neighbor(graph.node_list[-i - 1], graph.node_list[-i - order - 1], graph)
-                for i in range(order, len(graph.node_list) - order):
-                    self.check_add_neighbor(graph.node_list[i], graph.node_list[i - order], graph)
-                    self.check_add_neighbor(graph.node_list[i], graph.node_list[i + order], graph)
-            return self.shortest_shortest_path(increment=False)
-        self.s2_iteration += 1
-        return min_dist, min_path
-
-    @staticmethod
-    def check_add_neighbor(n1: Node, n2: Node, graph: Graph):
-        if (n1.label == n2.label) or (not n1.queried) or (not n2.queried):
-            n1.add_neighbors([n2])
-            if n1.idx < n2.idx:
-                graph.edges.add((n1, n2))
-
-
-class MultiLabelGraph():
-    def __init__(self, nodes, labels, name, num_classes=10):
-        self.graph = Graph(nodes, name)
-        self.nodes = self.graph.nodes
-        self.node_list = nodes
-        self.num_nodes = self.graph.num_nodes
-        self.node_dict = self.graph.node_dict
-        self.labels = labels
-        self.num_classes = 10
-        self.not_queried = self.graph.not_queried
-
-    def label(self, idx):
-        self.graph.label(idx)
-
-    def nn_pred(self):
-        self.graph.nn_pred()
-
-    def gt_error(self):
-        return self.graph.gt_error()
-
-    def shortest_shortest_path(self):
-        if self.num_classes == 10:
-            splits = [([0, 1, 2, 3, 4], [5, 6, 7, 8, 9]),
-                      ([0, 1, 7, 8, 9], [5, 6, 2, 3, 4]),
-                      ([0, 6, 2, 3, 9], [5, 1, 7, 8, 4]),
-                      ([0, 6, 2, 8, 9], [5, 1, 7, 3, 4])]
-        else:
-             raise ValueError("Unexpected number of classes.")
-        min_dist = float('inf')
-        min_path = None
-        for (s1, s2) in splits:
-            for node, label in zip(self.node_list, self.labels):
-                if label in s1:
-                    node.label = -1
-                else:
-                    node.label = 1
-            dist, path = self.graph.shortest_shortest_path()
-            if dist < min_dist:
-                min_dist = dist
-                min_path = path
-
-        for node, label in zip(self.node_list, self.labels):
-            node.label = label
-        return min_dist, min_path
